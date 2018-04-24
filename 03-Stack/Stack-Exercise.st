@@ -214,33 +214,34 @@ Object subclass: #OOStack
 	poolDictionaries: ''
 	category: 'Stack-Exercise'!
 
-!OOStack methodsFor: 'as yet unclassified' stamp: 'GR 4/24/2018 16:41:14'!
+!OOStack methodsFor: 'modifications' stamp: 'GR 4/24/2018 16:41:14'!
 first: anElement
 	first := anElement.! !
 
-!OOStack methodsFor: 'as yet unclassified' stamp: 'GR 4/24/2018 16:38:58'!
+!OOStack methodsFor: 'modifications' stamp: 'GR 4/24/2018 16:38:58'!
 initialize
 	first:= Base new.! !
 
-!OOStack methodsFor: 'as yet unclassified' stamp: 'GR 4/24/2018 16:42:55'!
-isEmpty
-	^self size = 0.! !
-
-!OOStack methodsFor: 'as yet unclassified' stamp: 'GR 4/24/2018 16:39:55'!
+!OOStack methodsFor: 'modifications' stamp: 'GR 4/24/2018 16:39:55'!
 pop
 	^first popOf: self! !
 
-!OOStack methodsFor: 'as yet unclassified' stamp: 'GR 4/24/2018 16:43:34'!
+!OOStack methodsFor: 'modifications' stamp: 'GR 4/24/2018 16:43:34'!
 push: aSomething
 	| newElem |
 	newElem := Element createWithValue: aSomething after: first.
 	first := newElem.! !
 
-!OOStack methodsFor: 'as yet unclassified' stamp: 'GR 4/24/2018 16:37:41'!
+
+!OOStack methodsFor: 'information' stamp: 'GR 4/24/2018 16:42:55'!
+isEmpty
+	^self size = 0.! !
+
+!OOStack methodsFor: 'information' stamp: 'GR 4/24/2018 16:37:41'!
 size
 	^first size! !
 
-!OOStack methodsFor: 'as yet unclassified' stamp: 'GR 4/23/2018 21:56:21'!
+!OOStack methodsFor: 'information' stamp: 'GR 4/23/2018 21:56:21'!
 top
 	^first value! !
 
