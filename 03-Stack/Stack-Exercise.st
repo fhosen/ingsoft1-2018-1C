@@ -144,15 +144,17 @@ Object subclass: #Base
 	poolDictionaries: ''
 	category: 'Stack-Exercise'!
 
-!Base methodsFor: 'as yet unclassified' stamp: 'GR 4/24/2018 16:55:02'!
-popOf: aStack
-	^self error: OOStack stackEmptyErrorDescription ! !
-
-!Base methodsFor: 'as yet unclassified' stamp: 'GR 4/24/2018 16:41:59'!
+!Base methodsFor: 'information' stamp: 'GR 4/24/2018 16:41:59'!
 size
 	^0! !
 
-!Base methodsFor: 'as yet unclassified' stamp: 'GR 4/24/2018 16:55:29'!
+
+!Base methodsFor: 'modificators' stamp: 'GR 4/24/2018 16:55:02'!
+popOf: aStack
+	^self error: OOStack stackEmptyErrorDescription ! !
+
+
+!Base methodsFor: 'accesors' stamp: 'GR 4/24/2018 16:55:29'!
 value
 	^self error: OOStack stackEmptyErrorDescription ! !
 
@@ -174,27 +176,29 @@ Object subclass: #Element
 	poolDictionaries: ''
 	category: 'Stack-Exercise'!
 
-!Element methodsFor: 'as yet unclassified' stamp: 'GR 4/23/2018 21:41:22'!
+!Element methodsFor: 'information' stamp: 'GR 4/24/2018 16:37:59'!
+size
+	^1 + next size! !
+
+!Element methodsFor: 'information' stamp: 'GR 4/23/2018 21:55:02'!
+value
+	^value! !
+
+
+!Element methodsFor: 'modifications' stamp: 'GR 4/23/2018 21:41:22'!
 createWithValue: aValue after: nextElement
 	value := aValue.
 	next := nextElement.! !
 
-!Element methodsFor: 'as yet unclassified' stamp: 'GR 4/23/2018 21:46:06'!
-next
-	^next! !
-
-!Element methodsFor: 'as yet unclassified' stamp: 'GR 4/24/2018 16:44:44'!
+!Element methodsFor: 'modifications' stamp: 'GR 4/24/2018 16:44:44'!
 popOf: aStack
 	aStack first: self next.
 	^self value! !
 
-!Element methodsFor: 'as yet unclassified' stamp: 'GR 4/24/2018 16:37:59'!
-size
-	^1 + next size! !
 
-!Element methodsFor: 'as yet unclassified' stamp: 'GR 4/23/2018 21:55:02'!
-value
-	^value! !
+!Element methodsFor: 'accesor' stamp: 'GR 4/23/2018 21:46:06'!
+next
+	^next! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
