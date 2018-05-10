@@ -416,9 +416,9 @@ balance
 			total + account balance ].! !
 
 
-!Portfolio methodsFor: 'testing' stamp: 'FH 5/7/2018 21:14:46'!
+!Portfolio methodsFor: 'testing' stamp: 'FH 5/10/2018 13:29:30'!
 manages: anAccount
-
+		anAccount = self ifTrue: [^ true].
 		^ summarizingAccounts anySatisfy:
 			 [ :aSummarizingAccount  | (anAccount = aSummarizingAccount) |  (aSummarizingAccount manages: anAccount) ].
 ! !
@@ -429,8 +429,9 @@ registers: aTransaction
 	^summarizingAccounts anySatisfy: [ :anAccount | anAccount registers: aTransaction ].! !
 
 
-!Portfolio methodsFor: 'transactions' stamp: 'FH 5/7/2018 20:56:26'!
+!Portfolio methodsFor: 'transactions' stamp: 'FH 5/10/2018 14:21:03'!
 initializeWith: someAccounts
+	someAccounts asSet size = someAccounts size ifFalse: [self error: self class accountAlreadyManagedErrorMessage].
 	summarizingAccounts _ someAccounts.! !
 
 !Portfolio methodsFor: 'transactions' stamp: 'FH 5/7/2018 21:33:27'!
@@ -443,11 +444,11 @@ transactions
 		into: [ :allTransactions  :anAccount  |  allTransactions addAll: anAccount transactions.
 				 allTransactions ].! !
 
-!Portfolio methodsFor: 'transactions' stamp: 'FH 5/7/2018 21:55:35'!
+!Portfolio methodsFor: 'transactions' stamp: 'FH 5/10/2018 13:49:24'!
 transactionsOf: anAccount 
 
 	| aManagingAccount | 
-	aManagingAccount _ summarizingAccounts detect: [ :aSummarinzingAccount | aSummarinzingAccount manages: anAccount ] ifNone: [^ OrderedCollection new].
+	aManagingAccount _ summarizingAccounts detect: [ :aSummarinzingAccount | aSummarinzingAccount manages: anAccount ] ifNone: [self error: self class accountNotManagedMessageDescription].
 	aManagingAccount = anAccount  ifTrue: [
 		^ aManagingAccount transactions ] ifFalse: [
 		^ aManagingAccount  transactionsOf: anAccount ]
@@ -460,10 +461,13 @@ transactionsOf: anAccount
 Portfolio class
 	instanceVariableNames: ''!
 
-!Portfolio class methodsFor: 'instance creation' stamp: 'FH 5/7/2018 20:47:24'!
+!Portfolio class methodsFor: 'instance creation' stamp: 'FH 5/10/2018 14:24:44'!
 with: anAccount1 with: anAccount2
 
 	| accounts |
+	((anAccount1 manages: anAccount2) or: [anAccount2 manages: anAccount1 ] ) ifTrue: [
+		self error: self accountAlreadyManagedErrorMessage 
+	].
 	accounts _ OrderedCollection  with: anAccount1 with: anAccount2.
 	^self new initializeWith: accounts.! !
 
@@ -471,6 +475,15 @@ with: anAccount1 with: anAccount2
 withAll: aCollectionOfAccounts
 
 	self shouldBeImplemented ! !
+
+
+!Portfolio class methodsFor: 'errorMessage' stamp: 'FH 5/10/2018 13:50:31'!
+accountAlreadyManagedErrorMessage
+	^ 'No se puede agregar una misma cuenta mas de una vez.'! !
+
+!Portfolio class methodsFor: 'errorMessage' stamp: 'FH 5/10/2018 13:35:10'!
+accountNotManagedMessageDescription
+	^ 'No se puede pedir las transacciones de una cuenta no manejada.'! !
 
 
 !classDefinition: #ReceptiveAccount category: #'Portfolio-Ejercicio'!
