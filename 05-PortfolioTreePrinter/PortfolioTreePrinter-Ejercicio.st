@@ -506,25 +506,26 @@ test29ReversePortfolioTreePrinterPrintsTheCompositeStartingFromTheLeaves
 	! !
 
 
-!PortfolioTest methodsFor: 'test support' stamp: 'HAW 9/25/2017 21:44:47'!
+!PortfolioTest methodsFor: 'test support' stamp: 'GR 5/14/2018 18:50:59'!
 accountSummaryLinesOf: aReceptiveAccount 
 	
-	^aReceptiveAccount accountSummary! !
+	^AccountSummary with: aReceptiveAccount .
+	! !
 
 !PortfolioTest methodsFor: 'test support' stamp: 'FH 5/10/2018 21:26:54'!
 accountTransferNetOf: aReceptiveAccount 
 	
 	^aReceptiveAccount transferNet! !
 
-!PortfolioTest methodsFor: 'test support' stamp: 'HernanWilkinson 9/6/2016 19:43'!
+!PortfolioTest methodsFor: 'test support' stamp: 'GR 5/14/2018 18:06:09'!
 investmentEarningsOf: aReceptiveAccount 
 	
-	self shouldBeImplemented ! !
+	^aReceptiveAccount investmentEarnings! !
 
-!PortfolioTest methodsFor: 'test support' stamp: 'HernanWilkinson 9/6/2016 19:43'!
+!PortfolioTest methodsFor: 'test support' stamp: 'GR 5/14/2018 17:46:20'!
 investmentNetOf: aReceptiveAccount 
 	
-	self shouldBeImplemented ! !
+	^aReceptiveAccount investmenNet.! !
 
 !PortfolioTest methodsFor: 'test support' stamp: 'HernanWilkinson 9/6/2016 19:43'!
 portofolioTreeOf: aPortfolio namingAccountWith: aDictionary 
@@ -537,12 +538,75 @@ reversePortofolioTreeOf: aPortfolio namingAccountWith: aDictionary
 	self shouldBeImplemented ! !
 
 
+!classDefinition: #AccountSummary category: #'PortfolioTreePrinter-Ejercicio'!
+Object subclass: #AccountSummary
+	instanceVariableNames: 'account'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PortfolioTreePrinter-Ejercicio'!
+
+!AccountSummary methodsFor: 'initialization' stamp: 'GR 5/14/2018 18:30:21'!
+with: anAccount
+	account  := anAccount.! !
+
+
+!AccountSummary methodsFor: 'printing' stamp: 'GR 5/14/2018 18:53:26'!
+printAll
+	| transactions |
+	transactions := account transactions.
+	^transactions inject: OrderedCollection new into: [:summary :transaction | summary addLast: (transaction summaryWith: self); yourself ]! !
+
+!AccountSummary methodsFor: 'printing' stamp: 'GR 5/14/2018 18:45:14'!
+printCertificateOfDepositWithValue: aValue tna: aTna days: aNumberOfDays
+	^'Plazo fijo por ', aValue asString , ' durante ', aNumberOfDays asString , ' dias a una tna de ', (aTna*100) asString ,'%'.! !
+
+!AccountSummary methodsFor: 'printing' stamp: 'GR 5/14/2018 18:46:15'!
+printDepositWithValue: aValue
+	^ 'Deposito por ', aValue asString ! !
+
+!AccountSummary methodsFor: 'printing' stamp: 'GR 5/14/2018 18:40:27'!
+printTransferDepositWithValue: aValue
+	^ 'Transferencia por ', aValue asString.! !
+
+!AccountSummary methodsFor: 'printing' stamp: 'GR 5/14/2018 18:41:49'!
+printTransferWithdrawWithValue: aValue
+	^ 'Transferencia por ', aValue negated asString.! !
+
+!AccountSummary methodsFor: 'printing' stamp: 'GR 5/14/2018 18:47:44'!
+printWithdrawWithValue: aValue
+	^ 'Extraccion por ', aValue asString ! !
+
+
+!AccountSummary methodsFor: 'accesing' stamp: 'GR 5/14/2018 18:52:57'!
+at: anIndex
+	^self printAll at: anIndex.! !
+
+!AccountSummary methodsFor: 'accesing' stamp: 'GR 5/14/2018 18:52:38'!
+size
+	^self printAll size.! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'AccountSummary class' category: #'PortfolioTreePrinter-Ejercicio'!
+AccountSummary class
+	instanceVariableNames: ''!
+
+!AccountSummary class methodsFor: 'initialization' stamp: 'GR 5/14/2018 18:29:36'!
+with: anAccount
+	^self new with: anAccount.! !
+
+
 !classDefinition: #AccountTransaction category: #'PortfolioTreePrinter-Ejercicio'!
 Object subclass: #AccountTransaction
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'PortfolioTreePrinter-Ejercicio'!
+
+!AccountTransaction methodsFor: 'evaluating' stamp: 'GR 5/14/2018 18:07:06'!
+investmentEarnings
+	"Transactions are not investments"
+	^ 0! !
 
 !AccountTransaction methodsFor: 'evaluating' stamp: 'HernanWilkinson 7/14/2011 06:48'!
 value
@@ -554,6 +618,11 @@ valueForBalance
 
 	self subclassResponsibility ! !
 
+!AccountTransaction methodsFor: 'evaluating' stamp: 'GR 5/14/2018 17:52:32'!
+valueForInvestment
+	"Transactions are not investments"
+	^ 0! !
+
 !AccountTransaction methodsFor: 'evaluating' stamp: 'FH 5/10/2018 21:22:39'!
 valueForTransferNet
 	"Subclases of TransferTransaction should override this method"
@@ -562,6 +631,10 @@ valueForTransferNet
 
 !AccountTransaction methodsFor: 'information' stamp: 'FH 5/10/2018 21:02:52'!
 summary
+	self subclassResponsibility ! !
+
+!AccountTransaction methodsFor: 'information' stamp: 'GR 5/14/2018 18:36:28'!
+summaryWith: anAccountSummary
 	self subclassResponsibility ! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
@@ -587,6 +660,51 @@ AccountTransaction subclass: #CertificateOfDeposit
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'PortfolioTreePrinter-Ejercicio'!
+
+!CertificateOfDeposit methodsFor: 'initialization' stamp: 'GR 5/14/2018 17:55:29'!
+register: aValue during: aTimeInDays at: aRate on: anAccount
+	
+	value := aValue.
+	tna := aRate.
+	numberOfDays := aTimeInDays.
+	account := anAccount.
+	anAccount register: self.! !
+
+
+!CertificateOfDeposit methodsFor: 'information' stamp: 'GR 5/14/2018 18:10:09'!
+investmentEarnings
+	^ value * ((tna/360)*	numberOfDays)! !
+
+!CertificateOfDeposit methodsFor: 'information' stamp: 'GR 5/14/2018 18:14:31'!
+summary
+	^'Plazo fijo por ', value asString , ' durante ', numberOfDays asString , ' dias a una tna de ', (tna*100) asString ,'%'.! !
+
+!CertificateOfDeposit methodsFor: 'information' stamp: 'GR 5/14/2018 18:43:55'!
+summaryWith: anAccountSummary
+	^ anAccountSummary printCertificateOfDepositWithValue: value tna: tna days: numberOfDays.! !
+
+!CertificateOfDeposit methodsFor: 'information' stamp: 'GR 5/14/2018 17:56:51'!
+valueForBalance
+	^ value negated! !
+
+!CertificateOfDeposit methodsFor: 'information' stamp: 'GR 5/14/2018 17:56:23'!
+valueForInvestment
+	^ value! !
+
+!CertificateOfDeposit methodsFor: 'information' stamp: 'GR 5/14/2018 18:19:09'!
+valueForTransferNet
+	^0! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'CertificateOfDeposit class' category: #'PortfolioTreePrinter-Ejercicio'!
+CertificateOfDeposit class
+	instanceVariableNames: ''!
+
+!CertificateOfDeposit class methodsFor: 'initialization' stamp: 'GR 5/14/2018 17:42:51'!
+register: aValue during: aTimeInDays at: aRate on: anAccount
+
+^self new register: aValue during: aTimeInDays at: aRate on: anAccount! !
 
 
 !classDefinition: #Deposit category: #'PortfolioTreePrinter-Ejercicio'!
@@ -616,6 +734,10 @@ valueForBalance
 !Deposit methodsFor: 'information' stamp: 'FH 5/10/2018 21:05:11'!
 summary
 	^ 'Deposito por ', value asString ! !
+
+!Deposit methodsFor: 'information' stamp: 'GR 5/14/2018 18:45:54'!
+summaryWith: anAccountSummary
+	^ anAccountSummary printDepositWithValue: value.! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -669,6 +791,10 @@ valueForTransferNet
 summary
 	^ 'Transferencia por ', self valueForBalance asString ! !
 
+!TransferTransaction methodsFor: 'information' stamp: 'GR 5/14/2018 18:37:47'!
+summaryWith: anAccountSummary
+	self subclassResponsibility.! !
+
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
 !classDefinition: 'TransferTransaction class' category: #'PortfolioTreePrinter-Ejercicio'!
@@ -687,6 +813,10 @@ TransferTransaction subclass: #TransferDeposit
 	poolDictionaries: ''
 	category: 'PortfolioTreePrinter-Ejercicio'!
 
+!TransferDeposit methodsFor: 'value' stamp: 'GR 5/14/2018 18:38:44'!
+summaryWith: anAccountSummary
+	^ anAccountSummary printTransferDepositWithValue: super value! !
+
 !TransferDeposit methodsFor: 'value' stamp: 'FH 5/10/2018 20:37:01'!
 valueForBalance
 	^ self value! !
@@ -698,6 +828,10 @@ TransferTransaction subclass: #TransferWithdraw
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'PortfolioTreePrinter-Ejercicio'!
+
+!TransferWithdraw methodsFor: 'value' stamp: 'GR 5/14/2018 18:41:14'!
+summaryWith: anAccountSummary
+	^ anAccountSummary printTransferWithdrawWithValue: super value! !
 
 !TransferWithdraw methodsFor: 'value' stamp: 'FH 5/10/2018 20:49:54'!
 valueForBalance
@@ -731,6 +865,10 @@ valueForBalance
 !Withdraw methodsFor: 'information' stamp: 'FH 5/10/2018 21:05:52'!
 summary
 	^ 'Extraccion por ', value asString ! !
+
+!Withdraw methodsFor: 'information' stamp: 'GR 5/14/2018 18:47:23'!
+summaryWith: anAccountSummary
+	^ anAccountSummary printWithdrawWithValue: value.! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -907,6 +1045,15 @@ initialize
 balance
 
 	^ transactions inject: 0 into: [ :balance :transaction | balance + transaction valueForBalance]! !
+
+!ReceptiveAccount methodsFor: 'transactions' stamp: 'GR 5/14/2018 17:51:13'!
+investmenNet
+
+	^ transactions inject: 0 into: [ :balance :transaction | balance + transaction valueForInvestment]! !
+
+!ReceptiveAccount methodsFor: 'transactions' stamp: 'GR 5/14/2018 18:06:54'!
+investmentEarnings
+	^ transactions inject: 0 into: [ :net :transaction | net + transaction investmentEarnings]! !
 
 !ReceptiveAccount methodsFor: 'transactions' stamp: 'HernanWilkinson 7/13/2011 18:37'!
 register: aTransaction
