@@ -1,0 +1,5 @@
+testear que no se puedan agregar libros con un n < 1, y tampoco numeros no naturale
+:
+desarrollar el cajero haciendo checkout y sin preocuparse por la interfaz del otro sistema
+que el test de la fecha sea indepedendiente de la fecha actual de la maqina
+modelar tarjeta (que no sepa responder pagar o cosas así) que sepa responder fechas de emision, numero, etc.
