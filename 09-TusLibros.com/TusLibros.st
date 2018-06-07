@@ -109,6 +109,54 @@ test10ACartWithManyBooksHasCorrectContent
 	self assert: [ aCart content includes: #LOTR2 -> 2 ].
 	self assert: [ aCart content includes: #LOTR3 -> 3 ].! !
 
+!TusLibrosTest methodsFor: 'testing' stamp: 'GR 6/7/2018 16:03:57'!
+test11ABookRemovedFromTheCartIsNoLongerInTheCart
+	
+	aMarket add: #LOTR1.
+	aMarket add: #LOTR2.
+	aMarket add: #LOTR3.
+
+	aCart
+		add: #LOTR1
+		withAmount: 1.
+	aCart
+		add: #LOTR2
+		withAmount: 2.
+	aCart
+		add: #LOTR3
+		withAmount: 3.
+
+	aCart
+		remove: #LOTR1.
+	self assert: aCart content size equals: 2.
+	self deny: ( aCart content includes: #LOTR1 -> 1).
+	self assert: [ aCart content includes: #LOTR2 -> 2 ].
+	self assert: [ aCart content includes: #LOTR3 -> 3 ].! !
+
+!TusLibrosTest methodsFor: 'testing' stamp: 'GR 6/7/2018 16:05:17'!
+test12ABookAddedManyTimesAfterRemovalIsOneLess
+	
+	aMarket add: #LOTR1.
+	aMarket add: #LOTR2.
+	aMarket add: #LOTR3.
+
+	aCart
+		add: #LOTR1
+		withAmount: 1.
+	aCart
+		add: #LOTR2
+		withAmount: 2.
+	aCart
+		add: #LOTR3
+		withAmount: 3.
+		
+	aCart
+		remove: #LOTR3.
+	self assert: aCart content size equals: 3.
+	self assert: [ aCart content includes: #LOTR1 -> 1 ].
+	self assert: [ aCart content includes: #LOTR2 -> 2 ].
+	self assert: [ aCart content includes: #LOTR3 -> 2 ].! !
+
 
 !TusLibrosTest methodsFor: 'initialization' stamp: 'FH 6/6/2018 23:57:18'!
 setUp
@@ -132,10 +180,15 @@ hasBook: aBook
 	^ books includes: aBook.! !
 
 
-!Cart methodsFor: 'adding' stamp: 'FH 6/7/2018 00:13:47'!
+!Cart methodsFor: 'operating' stamp: 'FH 6/7/2018 00:13:47'!
 add: aBook withAmount: quantity
 	(market has: aBook)  ifFalse: [	^ self error: self class bookNotAvailable .].
 	books add: aBook withOccurrences: quantity.! !
+
+!Cart methodsFor: 'operating' stamp: 'GR 6/7/2018 15:56:33'!
+remove: aBook
+	books remove: aBook ifAbsent: [^ self error: self class bookNotInCart].
+! !
 
 
 !Cart methodsFor: 'initialization' stamp: 'FH 6/7/2018 00:01:52'!
@@ -166,6 +219,10 @@ newWith: aMarket
 !Cart class methodsFor: 'error' stamp: 'FH 6/7/2018 00:11:31'!
 bookNotAvailable
 	^ 'The book is not available in the Market'! !
+
+!Cart class methodsFor: 'error' stamp: 'GR 6/7/2018 15:56:00'!
+bookNotInCart
+	^ 'The book is not in the cart to be removed'! !
 
 
 !classDefinition: #Market category: #TusLibros!
