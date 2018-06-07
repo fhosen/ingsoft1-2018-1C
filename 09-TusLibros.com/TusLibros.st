@@ -1,6 +1,6 @@
 !classDefinition: #TusLibrosTest category: #TusLibros!
 TestCase subclass: #TusLibrosTest
-	instanceVariableNames: 'aCart'
+	instanceVariableNames: 'aCart aMarket'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'TusLibros'!
@@ -9,28 +9,39 @@ TestCase subclass: #TusLibrosTest
 test01ANewCartIsCreatedEmpty
 	self assert: aCart empty.! !
 
-!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/5/2018 19:18:55'!
+!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/7/2018 00:00:52'!
 test02ACartWithProductsIsNotEmpty
+	aMarket  add: #LOTR.
 	aCart add: #LOTR withAmount: 1.
 	self deny: aCart empty.! !
 
-!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/5/2018 19:18:59'!
+!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/7/2018 00:05:24'!
 test03ACartHasABookAfterAddingIt
+	aMarket add: #LOTR.
 	aCart add: #LOTR withAmount: 1. 
 	self assert: (aCart  hasBook: #LOTR).! !
 
-!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/5/2018 19:19:05'!
+!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/7/2018 00:06:04'!
 test04ACartDoesntHaveABookIfNotAdded
+	aMarket add: #ElViejoYElMar.
 	aCart add: #ElViejoYElMar withAmount: 1.
 	self deny:  (aCart  hasBook: #LOTR).! !
 
-!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/5/2018 19:42:49'!
-test05ACartDoesntHaveABookWhenAddedWithZeroQuantity
-	aCart add: #LOTR withAmount: 0.
-	self deny:  (aCart  hasBook: #LOTR).! !
+!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/7/2018 00:09:55'!
+test05ACartCantAddABookNotOwnByTheMarket
+	aMarket add: #MartinFierro.
+	self
+		should: [ aCart add: #LOTR withAmount: 2 ]
+		raise: Error
+		withExceptionDo: [ :anError |
+			self
+				assert: Cart bookNotAvailable
+				equals: anError messageText.
+		].! !
 
-!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/5/2018 19:40:02'!
+!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/7/2018 00:14:28'!
 test06ACartHasTheExactQuantityOfABookWhenAdded
+	aMarket add: #LOTR.
 	aCart
 		add: #LOTR
 		withAmount: 2.
@@ -38,8 +49,12 @@ test06ACartHasTheExactQuantityOfABookWhenAdded
 		assert: (aCart quantityOf: #LOTR)
 		equals: 2.! !
 
-!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/5/2018 19:40:34'!
+!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/7/2018 00:15:15'!
 test07ACartWithNoBooksHasNoQuantityOfAnyBook
+	aMarket add: #LOTR1.
+	aMarket add: #LOTR2.
+	aMarket add: #LOTR3.
+
 	self
 		assert: (aCart quantityOf: #LOTR1)
 		equals: 0.
@@ -50,8 +65,12 @@ test07ACartWithNoBooksHasNoQuantityOfAnyBook
 		assert: (aCart quantityOf: #LOTR3)
 		equals: 0.! !
 
-!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/5/2018 19:40:55'!
+!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/7/2018 00:15:38'!
 test08ACartWithABookHasNoQuantityOfOtherBook
+	aMarket add: #LOTR1.
+	aMarket add: #LOTR2.
+	aMarket add: #LOTR3.
+	
 	aCart
 		add: #LOTR1
 		withAmount: 2.
@@ -69,8 +88,13 @@ test08ACartWithABookHasNoQuantityOfOtherBook
 test09AnEmptyCartHasNoContent
 	self assert: aCart content isEmpty.! !
 
-!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/5/2018 19:48:18'!
+!TusLibrosTest methodsFor: 'testing' stamp: 'FH 6/7/2018 00:16:15'!
 test10ACartWithManyBooksHasCorrectContent
+	
+	aMarket add: #LOTR1.
+	aMarket add: #LOTR2.
+	aMarket add: #LOTR3.
+
 	aCart
 		add: #LOTR1
 		withAmount: 1.
@@ -86,14 +110,15 @@ test10ACartWithManyBooksHasCorrectContent
 	self assert: [ aCart content includes: #LOTR3 -> 3 ].! !
 
 
-!TusLibrosTest methodsFor: 'initialization' stamp: 'FH 6/5/2018 19:18:43'!
+!TusLibrosTest methodsFor: 'initialization' stamp: 'FH 6/6/2018 23:57:18'!
 setUp
-	aCart _ Cart new.! !
+	aMarket _ Market new.
+	aCart _ Cart newWith: aMarket.! !
 
 
 !classDefinition: #Cart category: #TusLibros!
 Object subclass: #Cart
-	instanceVariableNames: 'books'
+	instanceVariableNames: 'books market'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'TusLibros'!
@@ -102,27 +127,64 @@ Object subclass: #Cart
 empty
 	^ books isEmpty ! !
 
-!Cart methodsFor: 'testing' stamp: 'FH 6/5/2018 19:07:14'!
-hasBook: aSymbol 
-	^ books includesKey: aSymbol .! !
+!Cart methodsFor: 'testing' stamp: 'FH 6/6/2018 23:33:19'!
+hasBook: aBook 
+	^ books includes: aBook.! !
 
 
-!Cart methodsFor: 'adding' stamp: 'FH 6/5/2018 19:44:48'!
-add: aBook withAmount: anAmount 
-	anAmount  = 0 ifFalse: [
-		books at: aBook put: anAmount.
-	]! !
+!Cart methodsFor: 'adding' stamp: 'FH 6/7/2018 00:13:47'!
+add: aBook withAmount: quantity
+	(market has: aBook)  ifFalse: [	^ self error: self class bookNotAvailable .].
+	books add: aBook withOccurrences: quantity.! !
 
 
-!Cart methodsFor: 'initialization' stamp: 'FH 6/5/2018 19:04:05'!
-initialize
-	books _ Dictionary new.! !
+!Cart methodsFor: 'initialization' stamp: 'FH 6/7/2018 00:01:52'!
+initializeWith: aMarket
+	books _ Bag new.
+	market _ aMarket.! !
 
 
-!Cart methodsFor: 'accessing' stamp: 'FH 6/5/2018 19:34:43'!
+!Cart methodsFor: 'accessing' stamp: 'FH 6/6/2018 23:45:11'!
 content
-	^ books associations ! !
+	^ books sortedElements ! !
 
-!Cart methodsFor: 'accessing' stamp: 'FH 6/5/2018 19:13:59'!
+!Cart methodsFor: 'accessing' stamp: 'FH 6/6/2018 23:39:00'!
 quantityOf: aBook
-	^ books at: aBook ifAbsent: [^ 0].! !
+	^ books occurrencesOf: aBook! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'Cart class' category: #TusLibros!
+Cart class
+	instanceVariableNames: ''!
+
+!Cart class methodsFor: 'class initialization' stamp: 'FH 6/6/2018 23:58:18'!
+newWith: aMarket
+	^ super new initializeWith: aMarket.! !
+
+
+!Cart class methodsFor: 'error' stamp: 'FH 6/7/2018 00:11:31'!
+bookNotAvailable
+	^ 'The book is not available in the Market'! !
+
+
+!classDefinition: #Market category: #TusLibros!
+Object subclass: #Market
+	instanceVariableNames: 'availableBooks'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'TusLibros'!
+
+!Market methodsFor: 'initialization' stamp: 'FH 6/6/2018 23:53:04'!
+initialize
+	availableBooks _ Set new.! !
+
+
+!Market methodsFor: 'testing' stamp: 'FH 6/7/2018 00:04:38'!
+has: aBook
+	^ availableBooks includes: aBook! !
+
+
+!Market methodsFor: 'adding' stamp: 'FH 6/6/2018 23:54:05'!
+add: aBook
+	availableBooks add: aBook ! !
