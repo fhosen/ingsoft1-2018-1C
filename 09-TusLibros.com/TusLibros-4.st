@@ -253,9 +253,13 @@ TestCase subclass: #RESTInterfaceTest
 	poolDictionaries: ''
 	category: 'TusLibros'!
 
-!RESTInterfaceTest methodsFor: 'support' stamp: 'FH 6/17/2018 18:55:46'!
+!RESTInterfaceTest methodsFor: 'support' stamp: 'FH 6/18/2018 15:38:48'!
 createDefaultInterface
-	^ RESTInterface allowing: self validUsers withItemsFrom: self defaultCatalog! !
+	^ RESTInterface allowing: self validUsers withItemsFrom: self defaultCatalog andMerchant: self getMerchantProcessor registeringOn: self createSalesBook ! !
+
+!RESTInterfaceTest methodsFor: 'support' stamp: 'FH 6/18/2018 15:38:05'!
+createSalesBook
+	^ OrderedCollection new.! !
 
 !RESTInterfaceTest methodsFor: 'support' stamp: 'FH 6/17/2018 18:47:40'!
 defaultCatalog
@@ -265,6 +269,10 @@ defaultCatalog
 getAnotherValidBook
 	^ testObjectsFactory anotherItemSellByTheStore.! !
 
+!RESTInterfaceTest methodsFor: 'support' stamp: 'FH 6/18/2018 15:28:28'!
+getAnotherValidBookPrice
+	^ testObjectsFactory anotherItemSellByTheStorePrice .! !
+
 !RESTInterfaceTest methodsFor: 'support' stamp: 'FH 6/18/2018 13:55:36'!
 getCreditCardNumber
 	^ '0000222244446666'! !
@@ -272,6 +280,10 @@ getCreditCardNumber
 !RESTInterfaceTest methodsFor: 'support' stamp: 'FH 6/18/2018 13:55:59'!
 getCreditCardOwner
 	^ 'A credit card valid owner'! !
+
+!RESTInterfaceTest methodsFor: 'support' stamp: 'FH 6/18/2018 15:10:37'!
+getExpiredMonth
+	^ testObjectsFactory expiredMonth! !
 
 !RESTInterfaceTest methodsFor: 'support' stamp: 'FH 6/17/2018 19:54:43'!
 getInvalidBook
@@ -289,6 +301,10 @@ getInvalidPassword
 getInvalidUser
 	^ 'Usuario Invalido'! !
 
+!RESTInterfaceTest methodsFor: 'support' stamp: 'FH 6/18/2018 15:35:50'!
+getMerchantProcessor
+	^ self.! !
+
 !RESTInterfaceTest methodsFor: 'support' stamp: 'FH 6/18/2018 13:56:42'!
 getNotExpiredMonth
 	^ testObjectsFactory notExpiredMonth! !
@@ -296,6 +312,10 @@ getNotExpiredMonth
 !RESTInterfaceTest methodsFor: 'support' stamp: 'FH 6/17/2018 19:35:52'!
 getValidBook
 	^ testObjectsFactory itemSellByTheStore.! !
+
+!RESTInterfaceTest methodsFor: 'support' stamp: 'FH 6/18/2018 15:28:16'!
+getValidBookPrice
+	^ testObjectsFactory itemSellByTheStorePrice .! !
 
 !RESTInterfaceTest methodsFor: 'support' stamp: 'FH 6/17/2018 18:42:30'!
 getValidPassword
@@ -316,6 +336,10 @@ validUsers
 !RESTInterfaceTest methodsFor: 'initialization' stamp: 'FH 6/17/2018 18:48:40'!
 setUp
 	testObjectsFactory _ StoreTestObjectsFactory new.! !
+
+
+!RESTInterfaceTest methodsFor: 'merchant processor' stamp: 'FH 6/18/2018 15:36:41'!
+debit: anAmount from: aCreditCard! !
 
 
 !RESTInterfaceTest methodsFor: 'tests' stamp: 'FH 6/17/2018 19:03:23'!
@@ -467,6 +491,39 @@ test12CanNotCheckoutAnInvalidCart
 							]
 		raise: Error
 		withExceptionDo: [ :anError  | self assert: anError messageText equals: interface class invalidCartIDErrorMessage ].! !
+
+!RESTInterfaceTest methodsFor: 'tests' stamp: 'FH 6/18/2018 15:16:12'!
+test13CanNotCheckoutWithExpiredCreditCard
+	| interface  cartID|
+	
+	interface _ self createDefaultInterface.
+	cartID  _ interface createCartForUser: self getValidUser andPassword: self getValidPassword.
+	interface  add: self getValidBook withQuantity:  1 toCartWithID: cartID. 
+	
+	self
+		should: [ interface
+							checkOutCart: cartID 
+							withCardNumber: self getCreditCardNumber
+							withOwner: self getCreditCardOwner
+							andExpiration:  self getExpiredMonth
+							]
+		raise: Error
+		withExceptionDo: [ :anError  | self assert: anError messageText equals: interface class canNotCheckOutWithExpiredCreditCardErrorMessage ].! !
+
+!RESTInterfaceTest methodsFor: 'tests' stamp: 'FH 6/18/2018 15:29:12'!
+test14PurchasedItemListHasBoughtItems
+	| interface  cartID purchasedItemsList |
+	
+	interface _ self createDefaultInterface.
+	cartID  _ interface createCartForUser: self getValidUser andPassword: self getValidPassword.
+	interface  add: self getValidBook withQuantity:  1 toCartWithID: cartID. 
+	interface add: self getAnotherValidBook withQuantity: 5 toCartWithID: cartID .
+	
+	purchasedItemsList _ interface checkOutCart: cartID withCardNumber: self getCreditCardNumber  withOwner:  self getCreditCardOwner andExpiration: self getNotExpiredMonth .
+	
+	self assert: (purchasedItemsList at: self getValidBook ) equals: self getValidBookPrice .
+	self assert: (purchasedItemsList at: self getAnotherValidBook ) equals: self getAnotherValidBookPrice * 5 .	
+	! !
 
 
 !classDefinition: #Cart category: #TusLibros!
@@ -694,12 +751,14 @@ Object subclass: #RESTInterface
 	poolDictionaries: ''
 	category: 'TusLibros'!
 
-!RESTInterface methodsFor: 'initialization' stamp: 'FH 6/17/2018 19:19:36'!
-initializeAllowing: someValidUsers withItemsFrom: aCatalog
+!RESTInterface methodsFor: 'initialization' stamp: 'FH 6/18/2018 15:39:59'!
+initializeAllowing: someValidUsers withItemsFrom: aCatalog andMerchant: aMerchant registeringOn: aSalesBook.
 	validUsers _ someValidUsers.
 	catalog  _ aCatalog .
 	lastGeneratedID  _ 1.
-	carts _ Dictionary new.! !
+	carts _ Dictionary new.
+	merchantProcessor _ aMerchant.
+	salesBook  _ aSalesBook.! !
 
 
 !RESTInterface methodsFor: 'errors' stamp: 'FH 6/17/2018 19:42:24'!
@@ -753,19 +812,19 @@ itemListOfCartWithID: cartID
 		ifAbsent: [self invalidCartIDError ]! !
 
 
-!RESTInterface methodsFor: 'check out' stamp: 'FH 6/18/2018 14:15:49'!
+!RESTInterface methodsFor: 'check out' stamp: 'FH 6/18/2018 15:31:20'!
 checkOutCart: cartID withCardNumber: aCreditCardNumber withOwner: anOwner andExpiration:  aMonth
 
 	| cart |
 	
 	cart _ carts  at: cartID ifAbsent: [self invalidCartIDError ].
 	
-	Cashier 
+	(Cashier 
 		toCheckout: cart 
 		charging: (CreditCard expiringOn: aMonth ) 
 		throught: merchantProcessor 
 		on: DateAndTime today
-		registeringOn: salesBook! !
+		registeringOn: salesBook) checkOut ! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -773,14 +832,18 @@ checkOutCart: cartID withCardNumber: aCreditCardNumber withOwner: anOwner andExp
 RESTInterface class
 	instanceVariableNames: ''!
 
-!RESTInterface class methodsFor: 'class initialization' stamp: 'FH 6/17/2018 18:51:55'!
-allowing: validUsers withItemsFrom:  aCatalog
-	^ self new initializeAllowing: validUsers withItemsFrom: aCatalog! !
+!RESTInterface class methodsFor: 'class initialization' stamp: 'FH 6/18/2018 15:39:20'!
+allowing: validUsers withItemsFrom:  aCatalog andMerchant: aMerchantProcessor registeringOn: aSalesBook
+	^ self new initializeAllowing: validUsers withItemsFrom: aCatalog  andMerchant: aMerchantProcessor registeringOn: aSalesBook ! !
 
 
 !RESTInterface class methodsFor: 'errorMessages' stamp: 'FH 6/18/2018 14:12:42'!
 canNotCheckOutEmptyCartErrorMessage
 	^ Cashier cartCanNotBeEmptyErrorMessage! !
+
+!RESTInterface class methodsFor: 'errorMessages' stamp: 'FH 6/18/2018 15:13:26'!
+canNotCheckOutWithExpiredCreditCardErrorMessage
+	^ Cashier canNotChargeAnExpiredCreditCardErrorMessage! !
 
 !RESTInterface class methodsFor: 'errorMessages' stamp: 'FH 6/17/2018 19:42:57'!
 invalidCartIDErrorMessage
@@ -877,6 +940,10 @@ defaultCatalog
 expiredCreditCard
 	
 	^CreditCard expiringOn: (Month month: today monthIndex year: today yearNumber - 1)! !
+
+!StoreTestObjectsFactory methodsFor: 'credit card' stamp: 'FH 6/18/2018 15:10:55'!
+expiredMonth
+	^ Month month: today monthIndex year: today yearNumber -1! !
 
 !StoreTestObjectsFactory methodsFor: 'credit card' stamp: 'FH 6/18/2018 13:59:07'!
 notExpiredCreditCard
